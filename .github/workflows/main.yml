@@ -1,0 +1,94 @@
+name: 🕉️ Brahmacharya Streak Reminder
+
+on:
+  schedule:
+    # ලංකාවේ වේලාව (UTC+5:30) අනුව (cron UTC වලින්)
+    - cron: '30 0 * * *'   # උදේ 6:00
+    - cron: '30 6 * * *'   # දවල් 12:00
+    - cron: '30 12 * * *'  # හවස 6:00
+    - cron: '30 15 * * *'  # රාත්‍රී 9:00
+    - cron: '30 18 * * *'  # මැදියම 00:00 (ඊළඟ දවස)
+  workflow_dispatch:        # අතින් ධාවනයට
+
+jobs:
+  send-streak-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📅 දින ගණනය කර Telegram පණිවිඩය යවන්න
+        run: |
+          # කාල කලාපය
+          TZ='Asia/Colombo'
+          start_epoch=$(TZ=$TZ date -d '2026-06-17 00:00:00' +%s)
+          now_epoch=$(TZ=$TZ date +%s)
+          days=$(( (now_epoch - start_epoch) / 86400 + 1 ))
+
+          # 🕐 දවසේ කාලය අනුව ආචාරය
+          hour=$(TZ=$TZ date +%H)
+          if [ $hour -ge 5 ] && [ $hour -lt 12 ]; then
+            greeting="🌅 උදෑසන"
+          elif [ $hour -ge 12 ] && [ $hour -lt 17 ]; then
+            greeting="☀️ මධ්‍යාහ්න"
+          elif [ $hour -ge 17 ] && [ $hour -lt 21 ]; then
+            greeting="🌇 සන්ධ්‍යාව"
+          else
+            greeting="🌙 රාත්‍රී"
+          fi
+
+          # 🏆 විශේෂ සන්ධිස්ථාන
+          milestone=""
+          if [ $((days % 7)) -eq 0 ] && [ $days -gt 0 ]; then
+            milestone="🎉 *සති $((days / 7))ක් සම්පූර්ණයි!* ඔබගේ ගමන ආශ්චර්යමත්ය!"
+          fi
+          if [ $((days % 30)) -eq 0 ] && [ $days -gt 0 ]; then
+            milestone="🌟 *මාස $((days / 30))ක්!* ඔබ අතිවිශිෂ්ටයි!"
+          fi
+          if [ $((days % 90)) -eq 0 ] && [ $days -gt 0 ]; then
+            milestone="🙏 *මාස 3ක් (දින $days)!* අනේක පින්!"
+          fi
+          if [ $days -eq 1 ]; then
+            milestone="🌱 *ආරම්භය!* ඔබගේ බ්‍රහ්මචර්යා ගමන ආරම්භ කර ඇත."
+          fi
+
+          # 📊 ප්‍රගති තීරුව (ඉලක්කය: දින 90)
+          target=90
+          if [ $days -lt $target ]; then
+            filled=$(( days * 10 / target ))  # තීරු 10 කින් නිරූපණය
+          else
+            filled=10
+          fi
+          bar=""
+          for ((i=0; i<filled; i++)); do bar+="🟩"; done
+          for ((i=filled; i<10; i++)); do bar+="⬜"; done
+          progress_text="🎯 ඉලක්කය: දින $target\n$bar ($days/$target)"
+
+          # 📖 අහඹු ධර්ම උපදේශය
+          quotes=(
+            "සුඛා සංයමා ජීවිතා – සංයමයෙන් ජීවිතය සුවපත් වේ."
+            "අත්ථානුධම්ම පටිසංවිදා – අර්ථය හා ධර්මය විමසා බලන්න."
+            "න තං මාතා පිතා කයිරා – අන්‍යයන් නොව තමන් විසින්ම කළ යුතුයි."
+            "අප්පමාදෝ අමතපදං – අප්‍රමාදය අමෘත පදයයි."
+            "සබ්බ පාපස්ස අකරණං – සියලු පව් නොකිරීම."
+            "මනෝ පුබ්බංගමා ධම්මා – සිත පෙරටු කොට ඇති ධර්මයෝ."
+          )
+          idx=$(( RANDOM % ${#quotes[@]} ))
+          quote="${quotes[$idx]}"
+
+          # ✉️ අවසාන පණිවිඩය
+          message="🕉️ *බ්‍රහ්මචර්යා ස්මාරකය*
+          
+          $greeting, ඔබගේ සංවර ගමනේ *$days වන දිනයයි.*
+          
+          $milestone
+          
+          $progress_text
+          
+          📖 *ධර්ම උපදේශය:*
+          \"$quote\"
+          
+          🌱 සංවරව ඉදිරියට යන්න. ඔබේ ආත්ම ශක්තිය දිනෙන් දින වැඩි වේවා!"
+
+          # 🤖 Telegram වෙත යැවීම
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d parse_mode="Markdown" \
+            -d text="$message"
