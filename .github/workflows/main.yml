@@ -13,7 +13,7 @@ jobs:
   send-streak-notification:
     runs-on: ubuntu-latest
     steps:
-      - name: 📅 Build & Send Beautiful Message with Time Analysis
+      - name: 📅 Send Ultra Short & Beautiful Message
         run: |
           TZ='Asia/Colombo'
           START_DATE='2026-06-17'   # ඔබගේ ආරම්භක දිනය
@@ -23,23 +23,19 @@ jobs:
           now_epoch=$(TZ=$TZ date +%s)
           days=$(( (now_epoch - start_epoch) / 86400 + 1 ))
 
-          # 🕐 දවසේ කාලය හා ගැලපෙන ආචාරය
+          # 🕐 දවසේ කාලය අනුව ආචාරය
           hour=$(TZ=$TZ date +%H)
           if [ $hour -ge 5 ] && [ $hour -lt 12 ]; then
             greeting="🌅 උදෑසන"
-            extra="මෙම උදෑසන ඔබේ අධිෂ්ඨානය නැවත පිබිදෙන්න!"
           elif [ $hour -ge 12 ] && [ $hour -lt 17 ]; then
             greeting="☀️ මධ්‍යාහ්න"
-            extra="දවල් කාලයේත් සිහිකල්පනාවෙන් සිටින්න!"
           elif [ $hour -ge 17 ] && [ $hour -lt 21 ]; then
             greeting="🌇 සන්ධ්‍යාව"
-            extra="සන්ධ්‍යාවේ මෙනෙහි කරන්න, අද දිනය කෙසේ වීද?"
           else
             greeting="🌙 රාත්‍රී"
-            extra="රාත්‍රී සන්සුන් භාවයේ ඔබේ ගමන ගැන සිතන්න."
           fi
 
-          # 📊 ප්‍රගති තීරුව, ප්‍රතිශතය, කාල විශ්ලේෂණය
+          # 📊 ප්‍රගති ගණනය
           if [ $days -lt $TARGET ]; then
             percent=$(( days * 100 / TARGET ))
             filled=$(( days * 10 / TARGET ))
@@ -55,85 +51,17 @@ jobs:
           for ((i=0; i<filled; i++)); do bar+="🟩"; done
           for ((i=filled; i<10; i++)); do bar+="⬜"; done
 
-          # කාල විශ්ලේෂණය (පැය, මිනිත්තු)
-          hours=$((days * 24))
-          minutes=$((days * 1440))
-
-          # 📅 සන්ධිස්ථාන ගණනය කිරීම
+          # 📅 සන්ධිස්ථාන
           weeks=$((days / 7))
           months=$((days / 30))
+          next_week=$((7 - days % 7))
+          [ $next_week -eq 7 ] && next_week=7
 
-          # ඊළඟ සතියට / මාසයට ඉතිරි දින
-          if [ $((days % 7)) -eq 0 ]; then
-            next_week=7
-          else
-            next_week=$((7 - days % 7))
-          fi
-
-          if [ $((days % 30)) -eq 0 ]; then
-            next_month=30
-          else
-            next_month=$((30 - days % 30))
-          fi
-
-          # සන්ධිස්ථාන පෙළ
-          milestone_text="✓ ආරම්භය සනිටුහන් කළා"
-          if [ $weeks -gt 0 ]; then
-            milestone_text="$milestone_text\n✓ සති $weeks සම්පූර්ණයි"
-          fi
-          if [ $months -gt 0 ]; then
-            milestone_text="$milestone_text\n✓ මාස $months සම්පූර්ණයි"
-          fi
-          milestone_text="$milestone_text\n⏳ ඊළඟ සතියට දින $next_week කි"
-          milestone_text="$milestone_text\n⏳ ඊළඟ මාසයට දින $next_month කි"
-          if [ $remaining -gt 0 ]; then
-            milestone_text="$milestone_text\n🎯 ඉලක්කයට තව දින $remaining කි"
-          else
-            milestone_text="$milestone_text\n🎉 ඔබ ඉලක්කය සම්පූර්ණ කර ඇත!"
-          fi
-
-          # 📖 පුළුල් ධර්ම උපදේශ (15ක්)
-          quotes=(
-            "සුඛා සංයමා ජීවිතා – සංයමයෙන් ජීවිතය සුවපත් වේ."
-            "අත්ථානුධම්ම පටිසංවිදා – අර්ථය හා ධර්මය විමසා බලන්න."
-            "න තං මාතා පිතා කයිරා – අන්‍යයන් නොව තමන් විසින්ම කළ යුතුයි."
-            "අප්පමාදෝ අමතපදං – අප්‍රමාදය අමෘත පදයයි."
-            "සබ්බ පාපස්ස අකරණං – සියලු පව් නොකිරීම."
-            "මනෝ පුබ්බංගමා ධම්මා – සිත පෙරටු කොට ඇති ධර්මයෝ."
-            "උට්ඨානවතෝ සතිමතෝ – නැගිටීම ඇත්තාහට සිහිය ඇත."
-            "සංයෝජනං ඛයං පත්වා – සියලු බැඳුම් නැති කර ගන්න."
-            "විරියේන දුක්ඛමච්චේති – වීර්යයෙන් දුක ඉක්මවා යයි."
-            "චිත්තං දමෙන්ති පණ්ඩිතා – පණ්ඩිතයෝ සිත දමනය කරති."
-            "යෝ සංයමං ආරභති – යමෙක් සංයමය ආරම්භ කරයිද"
-            "සබ්බේ සත්තා සුඛී හොන්තු – සියලු සත්වයෝ සුවපත් වෙත්වා!"
-            "ධම්මං චරෙ සුඛිතං – ධර්මයෙහි හැසිරෙන්නේ සුවයි."
-            "අතීතං නානුසොචන්ති – අතීතය ගැන නොතැවෙති."
-            "අනාගතං න පතිහංසන්ති – අනාගතය ගැන නොසිතති."
-          )
-          idx=$(( RANDOM % ${#quotes[@]} ))
-          quote="${quotes[$idx]}"
-
-          # ✉️ අවසාන පණිවිඩය
-          message="🕉️ *බ්‍රහ්මචර්යා ස්මාරකය*
-          
-          $greeting, ඔබගේ සංවර ගමනේ *$days වන දිනයයි.*
-          
-          📊 *ප්‍රගති සාරාංශය:*
-          • ඉලක්කය: දින $TARGET ($percent% සම්පූර්ණයි)
-          • ප්‍රගතිය: $bar
-          • ගත කළ කාලය: දින $days = පැය $hours = මිනිත්තු $minutes
-          
-          📅 *සන්ධිස්ථාන:*
-          $milestone_text
-          
-          📖 *ධර්ම උපදේශය:*
-          _\"$quote\"_
-          
-          💭 $extra
-          
-          🌱 සංවරව ඉදිරියට යන්න. ඔබේ ආත්ම ශක්තිය දිනෙන් දින වැඩි වේවා!
-          
-          🙏 _සාධු! සාධු! සාධු!_"
+          # ✉️ කෙටිම හා ලස්සනම පණිවිඩය (පේළි 4ක්)
+          message="🕉️ *දින $daysයි!* ($percent% සම්පූර්ණයි) 🎯 තව දින $remainingයි.
+          📊 $bar
+          📅 සති $weeks | මාස $months | ඊළඟ සතියට දින $next_weekයි.
+          $greeting, සංවර ගමනේ $days වන දිනය. 💪"
 
           # 📤 Telegram වෙත යැවීම
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
