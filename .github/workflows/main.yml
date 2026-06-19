@@ -1,4 +1,4 @@
-name: 🕉️ Brahmacharya Streak Reminder
+name: 🔥 Brahmacharya Streak Reminder
 
 on:
   schedule:
@@ -58,7 +58,7 @@ jobs:
           [ $next_week -eq 7 ] && next_week=7
 
           # ✉️ කෙටිම හා ලස්සනම පණිවිඩය (පේළි 4ක්)
-          message="🕉️ *දින $daysයි!* ($percent% සම්පූර්ණයි) 🎯 තව දින $remainingයි.
+          message="❤️‍🔥💥 *දින $daysයි!* ($percent% සම්පූර්ණයි) 🎯 තව දින $remainingයි.
           📊 $bar
           📅 සති $weeks | මාස $months | ඊළඟ සතියට දින $next_weekයි.
           $greeting, සංවර ගමනේ $days වන දිනය. 💪"
